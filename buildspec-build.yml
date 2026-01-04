@@ -33,7 +33,3 @@ artifacts:
     - imagedefinitions.json
     - infrastructure/**/*
   discard-paths: no
-
-cache:
-  paths:
-    - "/var/lib/docker/**/*"
