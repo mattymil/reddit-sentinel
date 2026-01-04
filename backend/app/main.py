@@ -1,15 +1,15 @@
 """FastAPI application entry point."""
 
 import logging
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
 import redis
 from fastapi import FastAPI
 
 from app import __version__
-from app.config import settings
 from app.api.routes import router
+from app.config import settings
 
 # Configure logging
 logging.basicConfig(

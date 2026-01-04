@@ -1,10 +1,10 @@
 """Pytest fixtures for RedditSentinel tests."""
 
-import pytest
+from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
-from datetime import datetime, timezone
 
 import fakeredis
+import pytest
 from fastapi.testclient import TestClient
 
 
@@ -28,7 +28,7 @@ def sample_redditor():
     """Provide a sample Redditor object for testing."""
     redditor = MagicMock()
     redditor.name = "TestUser123"
-    redditor.created_utc = datetime(2023, 1, 1, tzinfo=timezone.utc).timestamp()
+    redditor.created_utc = datetime(2023, 1, 1, tzinfo=UTC).timestamp()
     redditor.link_karma = 1000
     redditor.comment_karma = 500
     redditor.has_verified_email = True
@@ -46,7 +46,7 @@ def sample_submissions():
         sub.title = f"Test Post {i}"
         sub.selftext = f"This is the content of test post {i}."
         sub.subreddit.display_name = ["funny", "pics", "news", "funny", "pics"][i]
-        sub.created_utc = datetime(2024, 1, i + 1, 12, 0, tzinfo=timezone.utc).timestamp()
+        sub.created_utc = datetime(2024, 1, i + 1, 12, 0, tzinfo=UTC).timestamp()
         sub.score = 100 + i * 10
         submissions.append(sub)
     return submissions
@@ -60,7 +60,7 @@ def sample_comments():
         comment = MagicMock()
         comment.body = f"This is test comment number {i}. It has some words in it."
         comment.subreddit.display_name = ["funny", "pics", "news"][i % 3]
-        comment.created_utc = datetime(2024, 1, 1, i, 0, tzinfo=timezone.utc).timestamp()
+        comment.created_utc = datetime(2024, 1, 1, i, 0, tzinfo=UTC).timestamp()
         comment.score = 10 + i
         comments.append(comment)
     return comments
@@ -71,7 +71,7 @@ def bot_like_redditor():
     """Provide a Redditor that exhibits bot-like characteristics."""
     redditor = MagicMock()
     redditor.name = "SuspiciousBot999"
-    redditor.created_utc = datetime(2024, 12, 1, tzinfo=timezone.utc).timestamp()  # Very new
+    redditor.created_utc = datetime(2024, 12, 1, tzinfo=UTC).timestamp()  # Very new
     redditor.link_karma = 50000  # Suspiciously high for new account
     redditor.comment_karma = 100
     redditor.has_verified_email = False
@@ -95,7 +95,9 @@ def bot_like_comments():
         comment = MagicMock()
         comment.body = text
         comment.subreddit.display_name = "spam"  # Low diversity
-        comment.created_utc = datetime(2024, 1, 1, 3, i, tzinfo=timezone.utc).timestamp()  # Same hour
+        comment.created_utc = datetime(
+            2024, 1, 1, 3, i, tzinfo=UTC
+        ).timestamp()  # Same hour
         comment.score = 1
         comments.append(comment)
     return comments
@@ -107,6 +109,7 @@ def app_client(redis_client, mock_reddit):
     # Import here to avoid circular imports and allow mocking
     with patch("app.main.get_redis_client", return_value=redis_client):
         from app.main import app
+
         with TestClient(app) as client:
             yield client
 

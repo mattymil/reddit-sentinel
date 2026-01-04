@@ -28,7 +28,9 @@ class TimezoneEstimate(BaseModel):
 
     likely_offset: str = Field(..., description="Estimated UTC offset")
     confidence: float = Field(..., ge=0, le=1, description="Confidence in estimate")
-    peak_hours_utc: list[int] = Field(default_factory=list, description="Peak posting hours in UTC")
+    peak_hours_utc: list[int] = Field(
+        default_factory=list, description="Peak posting hours in UTC"
+    )
 
 
 class ScoreResponse(BaseModel):

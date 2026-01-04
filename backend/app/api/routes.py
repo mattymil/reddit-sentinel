@@ -1,9 +1,9 @@
 """API route definitions."""
 
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
 from app import __version__
 from app.api.schemas import (
@@ -56,7 +56,7 @@ async def get_score(username: str) -> ScoreResponse:
         classification=Classification.UNKNOWN,
         contributing_factors=[],
         timezone_estimate=None,
-        analyzed_at=datetime.now(timezone.utc),
+        analyzed_at=datetime.now(UTC),
         cached=False,
         cache_expires_at=None,
     )
@@ -78,7 +78,7 @@ async def analyze_batch(request: BatchRequest) -> BatchResponse:
                 classification=Classification.UNKNOWN,
                 contributing_factors=[],
                 timezone_estimate=None,
-                analyzed_at=datetime.now(timezone.utc),
+                analyzed_at=datetime.now(UTC),
                 cached=False,
                 cache_expires_at=None,
             )
