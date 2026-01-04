@@ -79,20 +79,20 @@ class ApplicationStack(Stack):
         # ElastiCache subnet group (using public subnets since no private)
         redis_subnet_group = elasticache.CfnSubnetGroup(
             self,
-            "RedisSubnetGroup",
-            description="Subnet group for Redis",
+            "RedisSubnetGroupPublic",
+            description="Subnet group for Redis (public)",
             subnet_ids=[subnet.subnet_id for subnet in vpc.public_subnets],
-            cache_subnet_group_name="reddit-sentinel-redis",
+            cache_subnet_group_name="reddit-sentinel-redis-public",
         )
 
         # ElastiCache Redis cluster (single node for cost)
         redis_cluster = elasticache.CfnCacheCluster(
             self,
-            "RedisCluster",
+            "RedisClusterPublic",
             cache_node_type="cache.t3.micro",
             engine="redis",
             num_cache_nodes=1,
-            cluster_name="reddit-sentinel",
+            cluster_name="reddit-sentinel-v2",
             vpc_security_group_ids=[redis_sg.security_group_id],
             cache_subnet_group_name=redis_subnet_group.cache_subnet_group_name,
         )
