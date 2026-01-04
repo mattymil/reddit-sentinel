@@ -21,7 +21,7 @@ phases:
   pre_build:
     commands:
       - echo "Starting Redis for tests..."
-      - docker run -d --name redis -p 6379:6379 redis:7-alpine
+      - docker run -d --name redis -p 6379:6379 public.ecr.aws/docker/library/redis:7-alpine
       - sleep 2
       - echo "Running linting..."
       - ruff check backend/
