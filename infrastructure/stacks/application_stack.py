@@ -36,21 +36,16 @@ class ApplicationStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        # VPC
+        # VPC - public subnets only to avoid NAT Gateway costs (~$32/mo)
         vpc = ec2.Vpc(
             self,
             "Vpc",
             max_azs=2,
-            nat_gateways=1,  # Cost optimization - single NAT
+            nat_gateways=0,  # No NAT Gateway - ECS will use public IP
             subnet_configuration=[
                 ec2.SubnetConfiguration(
                     name="Public",
                     subnet_type=ec2.SubnetType.PUBLIC,
-                    cidr_mask=24,
-                ),
-                ec2.SubnetConfiguration(
-                    name="Private",
-                    subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS,
                     cidr_mask=24,
                 ),
             ],
@@ -81,12 +76,12 @@ class ApplicationStack(Stack):
             description="Allow ECS tasks to connect to Redis",
         )
 
-        # ElastiCache subnet group
+        # ElastiCache subnet group (using public subnets since no private)
         redis_subnet_group = elasticache.CfnSubnetGroup(
             self,
             "RedisSubnetGroup",
             description="Subnet group for Redis",
-            subnet_ids=[subnet.subnet_id for subnet in vpc.private_subnets],
+            subnet_ids=[subnet.subnet_id for subnet in vpc.public_subnets],
             cache_subnet_group_name="reddit-sentinel-redis",
         )
 
@@ -177,7 +172,8 @@ class ApplicationStack(Stack):
                 },
             ),
             public_load_balancer=True,
-            assign_public_ip=False,
+            assign_public_ip=True,  # Public IP for internet access without NAT
+            task_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC),
             security_groups=[ecs_sg],
         )
 
