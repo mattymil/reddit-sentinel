@@ -1,0 +1,39 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.11
+      nodejs: 20
+    commands:
+      - echo "Installing AWS CDK..."
+      - npm install -g aws-cdk
+      - echo "Installing Python dependencies..."
+      - cd infrastructure
+      - pip install -r requirements.txt
+      - cd ..
+
+  pre_build:
+    commands:
+      - echo "Verifying CDK installation..."
+      - cdk --version
+      - echo "Synthesizing CDK app..."
+      - cd infrastructure
+      - cdk synth RedditSentinelApp --quiet
+
+  build:
+    commands:
+      - echo "Deploying application stack..."
+      - cdk deploy RedditSentinelApp --require-approval never --outputs-file outputs.json
+      - cat outputs.json
+
+  post_build:
+    commands:
+      - echo "Deployment completed!"
+      - echo "API URL:"
+      - cat outputs.json | python -c "import sys, json; print(json.load(sys.stdin).get('RedditSentinelApp', {}).get('ApiUrl', 'Not found'))"
+
+artifacts:
+  files:
+    - infrastructure/outputs.json
+  discard-paths: yes

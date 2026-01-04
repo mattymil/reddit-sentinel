@@ -1,0 +1,53 @@
+version: 0.2
+
+env:
+  variables:
+    PYTHON_VERSION: "3.11"
+    REDIS_URL: "redis://localhost:6379/0"
+    REDDIT_CLIENT_ID: "test_client_id"
+    REDDIT_CLIENT_SECRET: "test_client_secret"
+    REDDIT_USER_AGENT: "RedditSentinel/test"
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.11
+    commands:
+      - echo "Installing dependencies..."
+      - pip install --upgrade pip
+      - pip install -r backend/requirements.txt
+      - pip install -r backend/requirements-dev.txt
+
+  pre_build:
+    commands:
+      - echo "Starting Redis for tests..."
+      - docker run -d --name redis -p 6379:6379 redis:7-alpine
+      - sleep 2
+      - echo "Running linting..."
+      - ruff check backend/
+      - ruff format --check backend/
+      - echo "Running type checks..."
+      - mypy backend/app --ignore-missing-imports
+
+  build:
+    commands:
+      - echo "Running tests with coverage..."
+      - cd backend
+      - pytest tests/ -v --cov=app --cov-report=xml --cov-report=term-missing --cov-fail-under=80
+      - cd ..
+
+  post_build:
+    commands:
+      - echo "Stopping Redis..."
+      - docker stop redis || true
+      - echo "Tests completed successfully!"
+
+reports:
+  pytest_reports:
+    files:
+      - "backend/coverage.xml"
+    file-format: COBERTURAXML
+
+cache:
+  paths:
+    - "/root/.cache/pip/**/*"
